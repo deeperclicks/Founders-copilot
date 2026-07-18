@@ -675,11 +675,19 @@ function ChatPanel({ open, onClose, sessionId }) {
               </div>
             </>
           )}
-          {messages.map((m, i) => (
-            <div key={i} className={m.role === "user" ? "chat-bubble-user" : "chat-bubble-assistant"} data-testid={`msg-${m.role}-${i}`}>
-              {m.content || (streaming && i === messages.length - 1 ? "…" : "")}
-            </div>
-          ))}
+          {messages.map((m, i) => {
+            let content = m.content || "";
+            // Hide any tool-invocation prefix like [TOOL: name {...}] from the UI
+            if (m.role === "assistant" && content.trimStart().startsWith("[TOOL:")) {
+              const idx = content.indexOf("]");
+              content = idx >= 0 ? content.slice(idx + 1).trimStart() : "";
+            }
+            return (
+              <div key={i} className={m.role === "user" ? "chat-bubble-user" : "chat-bubble-assistant"} data-testid={`msg-${m.role}-${i}`}>
+                {content || (streaming && i === messages.length - 1 ? "…" : "")}
+              </div>
+            );
+          })}
         </div>
 
         <div className="p-4 flex items-center gap-2" style={{ borderTop: "1px solid rgba(0,0,0,0.05)" }}>
