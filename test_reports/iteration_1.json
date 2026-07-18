@@ -1,0 +1,22 @@
+{
+  "summary": "Full backend + frontend test pass for Founder Copilot. 11/11 pytest backend tests passed (root, analyze, report GET+404, profile known/unknown, chat empty=400, chat streaming, chat memory across turns, tool-call growth path, chat history persistence). Frontend Playwright E2E flows all working: intro skip, About modal with all 4 team names, theme toggle flips dark class, chip pressed state, full entry form → report with 4 required panels + growth + profile badge, watermark + Team Forca visible on all screens, Chat FAB opens panel, suggestion chips populate input, streaming assistant reply is grounded in profile (correctly cites Pvt Ltd entity recommendation and Indian context — DPIIT, ESOPs, ₹). Mobile 375x812 layout stacks correctly, watermark + credit + FAB non-overlapping.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Chat second pass: after a [TOOL: ...] first-line invocation, the LlmChat session_id keeps prior context so both turns share history — verified working, but note the first (tool-emitting) turn's partial text is still streamed to the client before the tool_call event; front-end should render only the delta chunks after the tool_call event as final. Current front-end handles this acceptably but could visually flash the raw [TOOL:...] line briefly.",
+    "chat SSE endpoint has no per-user rate limiting and no auth — acceptable for anonymous MVP but flag for prod.",
+    "founder_tools._SCHEMES and _OPPORTUNITIES are module-level lists mutated by dict spread — safe today, but if any tool ever appends to them, will corrupt state. Consider deep-copying on return."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "N/A - anonymous session_id based",
+  "seed_data_creation": "Test session TEST_<uuid> created via /founder/analyze; MongoDB collections founder_profiles, founder_reports, chat_history populated.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All flows green. Chip selectors use space-in-value ids (e.g., 'bm-b2b saas', 'fg-seed vc') — must be selected via CSS attribute selector with the space preserved: button[data-testid=\"bm-b2b saas\"]. Chat SSE parsed lines starting with 'data:' with delta/tool_call/done/error keys. LLM streaming latency ~4-8s per reply; use 60s+ timeouts."
+}
